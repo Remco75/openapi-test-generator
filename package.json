@@ -1,0 +1,26 @@
+{
+  "name": "open-api-test-generator",
+  "version": "0.0.1",
+  "private": false,
+  "dependencies": {
+    "json-schema-deref-sync": "^0.3.2",
+    "json-schema-test-data-generator": "^0.1.1",
+    "mkdirp": "^0.5.1",
+    "mkpath": "^1.0.0",
+    "rimraf": "^2.5.4",
+    "swagmock": "1.0.0",
+    "swagger-test-templates": "git+ssh://git@github.com/remco75/swagger-test-templates.git#master"
+  },
+  "description": "Generate mockdata and tests based on an OpenApi specification (fka Swagger Specification)",
+  "main": "index.js",
+  "keywords": [
+    "Swagger",
+    "OpenApi",
+    "specification",
+    "test",
+    "generator",
+    "mock"
+  ],
+  "author": "Remco Vlierman",
+  "license": "MIT"
+}
