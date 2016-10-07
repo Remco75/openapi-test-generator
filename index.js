@@ -2,7 +2,6 @@
     'use strict';
     var fs = require('fs'),
         mkdirp = require('mkdirp'),
-        rimraf = require('rimraf'),
         stt = require('swagger-test-templates'),
         path = require('path'),
         deref = require('json-schema-deref-sync'),
@@ -14,15 +13,14 @@
      * @description Generates tests and mocks for the given openApi spec.
      * @param spec {object} The swagger specification JSON
      * @param outputPath {string} The base where to write the files to
+     * @param writeMocks {boolean} Whether the module should write the generated requestMocks to file
      */
-    function generate(spec, outputPath) {
+    function generate(spec, outputPath, writeMocks) {
         // @todo validate the spec
         spec = deref(spec);
         if (!outputPath) {
-            console.log('please supply an output path');
-            return false;
+            throw new Error('please supply an output path');
         }
-        rimraf.sync(outputPath +'/*');
         outputBase = outputPath;
 
         var allPaths = extractPaths(spec.paths, outputBase),
@@ -30,10 +28,10 @@
 
         allPaths.forEach(function(apiPath) {
             requestMocks[path.join(spec.basePath, apiPath.path)] = {};
-            requestMocks[path.join(spec.basePath, apiPath.path)][apiPath.operation] = generateRequestMock(apiPath, spec, false);
-            apiPath.response = 200;
+            requestMocks[path.join(spec.basePath, apiPath.path)][apiPath.operation] = generateRequestMock(apiPath, spec, 200, 400, writeMocks);
             generateResponseMock(apiPath, spec)
         });
+
         generateTests(spec, requestMocks);
     }
 
@@ -54,43 +52,61 @@
         stt.testGen(spec, testConfig).forEach(function(file) {
             fs.writeFile(path.join(outputBase, file.name), file.test, function(err) {
                 if(err) { return console.log(err); }
-                console.log("The file "+ file.name +" was saved");
+                //console.log("The file "+ file.name +" was saved");
             });
         });
     }
 
     /**
      * @description generate a mock-object for a given path / operation combination based on it's parameter schema
+     * we assume statuscode 400 is a validation error for now
      * @param apiPath {object} object with path and operation to generate for
      * @param spec {object} the swagger spec
+     * @param succesStatusCode {integer} The http status-code which is returned for succes
+     * @param validationErrorStatusCode {integer} The http status-code which is returned for request validation errors
      * @param writeMockToFile {boolean} Should we write the mockfile to the output path
-     * @returns {object} the mock for the path / operation combi
+     * @returns {object} the mock for the path / operation combi.
+     *      Contains 2 properties:
+     *      - 200: contains the mocks that should lead to a succesful result
+     *      - 400: contains the mocks that should lead to a unsuccesful result, with validation errors
      */
-    function generateRequestMock(apiPath, spec, writeMockToFile) {
-        var pathMock =  {
-            200: [], 400: []
-        };
-        for (var i = 0; i < spec['paths'][apiPath.path][apiPath.operation].parameters.length; i++) {
-            var jsonData = mockRequestGenerator(spec['paths'][apiPath.path][apiPath.operation].parameters[i].schema);
+    function generateRequestMock(apiPath, spec, succesStatusCode, validationErrorStatusCode, writeMockToFile) {
+        var pathMock =  { },
+            getMocks = {};
 
-            // fill happy mocks
-            jsonData.filter(function(mock) { return mock.valid; }).forEach(function(mock) {
-                pathMock[200].push({ body: mock.data, description: mock.message});
-            });
+        pathMock[succesStatusCode] = [];
+        pathMock[validationErrorStatusCode] = [];
 
-            // fill validation errors mocks
-            jsonData.filter(function(mock) { return !mock.valid; }).forEach(function(mock) {
-                pathMock[400].push({ body: mock.data, description: mock.message});
-            });
+        spec['paths'][apiPath.path][apiPath.operation].parameters.forEach(function(param) {
+            getMocks[param.name] = (param.schema) ? mockRequestGenerator(param.schema) : mockRequestGenerator(param);
+        });
 
-            if (writeMockToFile) {
-                fs.writeFile(process.cwd(). path.join(outputBase, apiPath.operation, apiPath.path) + '/request-array.json', JSON.stringify(jsonData), {}, function (err) {
-                    if (err) { return console.log(err); }
-                    console.log("The request mock for " + apiPath.path + " was saved");
+        if(Object.keys(getMocks).length > 0) {
+            var validMocks = {},
+                inValidMocks = {};
+
+            for (var paramName in getMocks) {
+                getMocks[paramName].filter(function (fullMock) { return fullMock.valid; }).forEach(function (mock) {
+                    validMocks[paramName] = mock.data;
+                    validMocks.description = mock.message;
+                });
+
+                getMocks[paramName].filter(function (fullMock) { return !fullMock.valid; }).forEach(function (mock) {
+                    inValidMocks[paramName] = mock.data;
+                    inValidMocks.description = mock.message;
                 });
             }
+
+            pathMock[succesStatusCode].push(validMocks);
+            pathMock[validationErrorStatusCode].push(inValidMocks);
+            if (writeMockToFile) {
+                fs.writeFile(path.join(process.cwd(), outputBase, apiPath.operation, apiPath.path) + '/request-array.json', JSON.stringify(getMocks), {}, function (err) {
+                    if (err) { return console.log(err); }
+                    console.log("The request mock for " + apiPath.path + apiPath.operation +" was saved");
+                });
+            }
+            return pathMock;
         }
-        return pathMock;
     }
 
     /**
@@ -105,7 +121,7 @@
             } else {
                 fs.writeFile(path.join(process.cwd(), outputBase, apiPath.operation, apiPath.path)+'/response.json', JSON.stringify(mock), {}, function(err) {
                     if(err) { return console.log(err); }
-                    console.log("The response mock for "+ apiPath.path +" was saved");
+                    //console.log("The response mock for "+ apiPath.path +" was saved");
                 });
             }
         });
