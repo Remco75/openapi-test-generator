@@ -1,6 +1,9 @@
 # OpenAPI test and mock data generator
-This small module makes it easy to generate tests and request and response data for you openAPI spec (f.k.a. Swagger-spec).
-It makes use of some great modules out there to generate request mocks, response mocks, and then ties 'em together.
+This small module makes it easy to generate *tests* and *request* and *response* data for you openAPI spec (f.k.a. Swagger-spec).
+It makes use of some great modules out there to generate request mocks, response mocks, and then ties 'em together. 
+
+The generated response data is great for communication with the Frontend devvers in your team: tell 'em to use these files as mocks.
+As time and your API progresses they can just generate the most up date mocks.
 
 If you would like to use the seperate functionality, (ie just generate mocks, or only the test templates) check these dependencies in the package.json
 

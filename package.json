@@ -5,6 +5,10 @@
     "type": "git",
     "url": "git+ssh://git@github.com:Remco75/openapi-test-generator.git"
   },
+  "bugs": {
+    "url": "https://github.com/Remco75/openapi-test-generator/issues"
+  },
+  "homepage": "https://github.com/Remco75/openapi-test-generator#readme",
   "private": false,
   "dependencies": {
     "json-schema-deref-sync": "^0.3.2",
@@ -24,6 +28,10 @@
     "generator",
     "mock"
   ],
-  "author": "Remco Vlierman",
+  "author":  {
+    "name": "Remco Vlierman",
+    "email": "rcvlierman@gmail.com"
+  },
+
   "license": "MIT"
 }
