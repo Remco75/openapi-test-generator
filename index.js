@@ -7,83 +7,69 @@
         deref = require('json-schema-deref-sync'),
         Swagmock = require('swagmock'),
         mockRequestGenerator = require('json-schema-test-data-generator'),
-        outputBase;
+        outputBase, spec;
 
     /**
      * @description Generates tests and mocks for the given openApi spec.
-     * @param spec {object} The swagger specification JSON
      * @param outputPath {string} The base where to write the files to
      * @param writeMocks {boolean} Whether the module should write the generated requestMocks to file
      */
-    function generate(spec, outputPath, writeMocks) {
-        // @todo validate the spec
-        spec = deref(spec);
-        if (!outputPath) {
-            throw new Error('please supply an output path');
-        }
+    function generate(outputPath, writeMocks) {
+        if (!outputPath) { throw new Error('please supply an output path'); }
+
         outputBase = outputPath;
 
-        var allPaths = extractPaths(spec.paths, outputBase),
-            requestMocks = {};
+        var allPaths = extractPaths(spec.paths, outputBase), requestMocks = {};
 
         allPaths.forEach(function(apiPath) {
             requestMocks[path.join(spec.basePath, apiPath.path)] = {};
-            requestMocks[path.join(spec.basePath, apiPath.path)][apiPath.operation] = generateRequestMock(apiPath, spec, 200, 400, writeMocks);
-            generateResponseMock(apiPath, spec)
+            requestMocks[path.join(spec.basePath, apiPath.path)][apiPath.operation] = generateRequestMock(apiPath.path, apiPath.operation, 200, 400, writeMocks);
+            generateResponseMock(apiPath.path, apiPath.operation, 200)
         });
-
-        generateTests(spec, requestMocks);
+        generateTests(requestMocks);
     }
 
     /**
      * @description Generates tests for the given openApi spec.
-     * @param spec {object} The swagger specification JSON
-     * @param mocks {object} Mock data ordered by endpoint / operation / response
+     * @param mocks {object} Mock data ordered by endpoint / operation / responseCode
      */
-    function generateTests(spec, mocks) {
+    function generateTests(mocks) {
         var testConfig  = {
-            assertionFormat: 'should',
-            testModule: 'request',
-            pathName: [],
-            requestData: mocks,
-            maxLen: -1
+            assertionFormat: 'should', testModule: 'request', pathName: [], requestData: mocks, maxLen: -1
         };
 
         stt.testGen(spec, testConfig).forEach(function(file) {
             fs.writeFile(path.join(outputBase, file.name), file.test, function(err) {
                 if(err) { return console.log(err); }
-                //console.log("The file "+ file.name +" was saved");
+                console.log("The file "+ file.name +" was saved");
             });
         });
     }
 
     /**
      * @description generate a mock-object for a given path / operation combination based on it's parameter schema
-     * we assume statuscode 400 is a validation error for now
-     * @param apiPath {object} object with path and operation to generate for
-     * @param spec {object} the swagger spec
-     * @param succesStatusCode {integer} The http status-code which is returned for succes
-     * @param validationErrorStatusCode {integer} The http status-code which is returned for request validation errors
+     * @param apiPath {string} path to generate for
+     * @param operation {string} operation to generate for
+     * @param successStatusCode {number} The http status-code which is returned for succes
+     * @param validationErrorStatusCode {number} The http status-code which is returned for request validation errors
      * @param writeMockToFile {boolean} Should we write the mockfile to the output path
      * @returns {object} the mock for the path / operation combi.
      *      Contains 2 properties:
-     *      - 200: contains the mocks that should lead to a succesful result
-     *      - 400: contains the mocks that should lead to a unsuccesful result, with validation errors
+     *      - [successStatusCode]: contains the mocks that should lead to a succesful result
+     *      - [validationErrorStatusCode]: contains the mocks that should lead to a unsuccesful result, with validation errors
      */
-    function generateRequestMock(apiPath, spec, succesStatusCode, validationErrorStatusCode, writeMockToFile) {
-        var pathMock =  { },
-            getMocks = {};
+    function generateRequestMock(apiPath, operation, successStatusCode, validationErrorStatusCode, writeMockToFile) {
+        var pathMock =  {}, getMocks = {};
 
-        pathMock[succesStatusCode] = [];
+        pathMock[successStatusCode] = [];
         pathMock[validationErrorStatusCode] = [];
 
-        spec['paths'][apiPath.path][apiPath.operation].parameters.forEach(function(param) {
+        spec['paths'][apiPath][operation].parameters.forEach(function(param) {
             getMocks[param.name] = (param.schema) ? mockRequestGenerator(param.schema) : mockRequestGenerator(param);
         });
 
         if(Object.keys(getMocks).length > 0) {
-            var validMocks = {},
-                inValidMocks = {};
+            var validMocks = {}, inValidMocks = {};
 
             for (var paramName in getMocks) {
                 getMocks[paramName].filter(function (fullMock) { return fullMock.valid; }).forEach(function (mock) {
@@ -97,12 +83,13 @@
                 });
             }
 
-            pathMock[succesStatusCode].push(validMocks);
+            pathMock[successStatusCode].push(validMocks);
             pathMock[validationErrorStatusCode].push(inValidMocks);
+
             if (writeMockToFile) {
-                fs.writeFile(path.join(process.cwd(), outputBase, apiPath.operation, apiPath.path) + '/request-array.json', JSON.stringify(getMocks), {}, function (err) {
+                fs.writeFile(path.join(process.cwd(), outputBase, operation, apiPath) + '/request-array.json', JSON.stringify(getMocks), {}, function (err) {
                     if (err) { return console.log(err); }
-                    console.log("The request mock for " + apiPath.path + apiPath.operation +" was saved");
+                    console.log("The request mock for " + apiPath + operation +" was saved");
                 });
             }
             return pathMock;
@@ -111,27 +98,28 @@
 
     /**
      * @description  generate responseMocks based on the schemes, where possible we will use the `example` properties to fill the data
-     * @param apiPath {object} object with path and operation to generate for
-     * @param spec the swagger spec
+     * @param apiPath {string} path to generate for
+     * @param operation {string} operation to generate for
+     * @param statusCode {number} http statusCode to generate the response for
      */
-    function generateResponseMock(apiPath, spec) {
-        Swagmock(spec, {validated: true}).responses(apiPath, function(error, mock) {
+    function generateResponseMock(apiPath, operation, statusCode) {
+        Swagmock(spec, {validated: true}).responses({path: apiPath, operation: operation, response: statusCode}, function(error, mock) {
             if (error) {
                 console.log(error, path.path);
             } else {
-                fs.writeFile(path.join(process.cwd(), outputBase, apiPath.operation, apiPath.path)+'/response.json', JSON.stringify(mock), {}, function(err) {
+                fs.writeFile(path.join(process.cwd(), outputBase, operation, apiPath)+'/response.json', JSON.stringify(mock), {}, function(err) {
                     if(err) { return console.log(err); }
-                    //console.log("The response mock for "+ apiPath.path +" was saved");
+                    console.log("The response mock for "+ apiPath +" was saved");
                 });
             }
         });
     }
 
     /**
-     * @description extract path / operation info from swaggerJson for easier handling
+     * @description Smash nested path / operation info from swaggerJson for easier handling
      * @param  apiPaths {object} the endpoint for the api
      * @param base {string} baseDirectory if filled with a path we will create a directory structure to store mockdata
-     * @return {array} paths
+     * @return {array} paths / operations combinations
      */
     function extractPaths(apiPaths, base) {
         var responsePaths = [];
@@ -146,7 +134,18 @@
         return responsePaths;
     }
 
-    module.exports = {
-        generate: generate
+    /**
+     * @constructor
+     * @param openApiSpec {object} A valid openApi Specification json describing your api
+     * @returns {{generate: generate}}
+     */
+    module.exports = function(openApiSpec) {
+        if (!openApiSpec) throw new Error('please provide a openAPI json to start');
+        // @todo validate the spec
+        spec = deref(openApiSpec);
+
+        return {
+            generate: generate
+        }
     };
 }());
