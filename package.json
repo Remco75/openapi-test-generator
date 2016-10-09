@@ -8,6 +8,9 @@
   "bugs": {
     "url": "https://github.com/Remco75/openapi-test-generator/issues"
   },
+  "scripts": {
+    "test": "node node_modules/jasmine/bin/jasmine"
+  },
   "homepage": "https://github.com/Remco75/openapi-test-generator#readme",
   "private": false,
   "dependencies": {
