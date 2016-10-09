@@ -142,7 +142,6 @@
      */
     module.exports = function(openApiSpec) {
         if (!openApiSpec) throw new Error('please provide a openAPI json to start');
-
         if (!zSchema.validate(openApiSpec, swaggerSchema)) throw new Error('openAPI spec not valid');
 
         spec = deref(openApiSpec);
