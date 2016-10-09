@@ -11,12 +11,17 @@
   "homepage": "https://github.com/Remco75/openapi-test-generator#readme",
   "private": false,
   "dependencies": {
+    "asyncawait": "^1.0.6",
     "json-schema-deref-sync": "^0.3.2",
     "json-schema-test-data-generator": "^0.1.1",
     "mkdirp": "^0.5.1",
     "mkpath": "^1.0.0",
+    "swagger-parser": "^3.4.1",
+    "swagger-schema-official": "^2.0.0-bab6bed",
+    "swagger-test-templates": "git+ssh://git@github.com/remco75/swagger-test-templates.git#master",
+    "swagger-tools": "^0.10.1",
     "swagmock": "1.0.0",
-    "swagger-test-templates": "git+ssh://git@github.com/remco75/swagger-test-templates.git#master"
+    "z-schema": "^3.18.0"
   },
   "description": "Generate mockdata and tests based on an OpenApi specification (fka Swagger Specification)",
   "main": "index.js",
@@ -28,10 +33,9 @@
     "generator",
     "mock"
   ],
-  "author":  {
+  "author": {
     "name": "Remco Vlierman",
     "email": "rcvlierman@gmail.com"
   },
-
   "license": "MIT"
 }

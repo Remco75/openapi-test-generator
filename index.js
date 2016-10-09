@@ -7,7 +7,11 @@
         deref = require('json-schema-deref-sync'),
         Swagmock = require('swagmock'),
         mockRequestGenerator = require('json-schema-test-data-generator'),
-        outputBase, spec;
+        outputBase, spec,
+        ZSchema = require('z-schema'),
+        zSchema = new ZSchema(),
+        swaggerSchema = require('swagger-schema-official/schema');
+
 
     /**
      * @description Generates tests and mocks for the given openApi spec.
@@ -39,10 +43,7 @@
         };
 
         stt.testGen(spec, testConfig).forEach(function(file) {
-            fs.writeFile(path.join(outputBase, file.name), file.test, function(err) {
-                if(err) { return console.log(err); }
-                console.log("The file "+ file.name +" was saved");
-            });
+            fs.writeFileSync(path.join(outputBase, file.name), file.test);
         });
     }
 
@@ -141,9 +142,10 @@
      */
     module.exports = function(openApiSpec) {
         if (!openApiSpec) throw new Error('please provide a openAPI json to start');
-        // @todo validate the spec
-        spec = deref(openApiSpec);
 
+        if (!zSchema.validate(openApiSpec, swaggerSchema)) throw new Error('openAPI spec not valid');
+
+        spec = deref(openApiSpec);
         return {
             generate: generate
         }

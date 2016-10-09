@@ -1,0 +1,503 @@
+{
+	"swagger" : "2.0",
+	"host" : "localhost:8080",
+	"basePath" : "/online/rest/mortgage",
+	"tags" : [{
+		"name" : "Calculation",
+		"description" : "Mortgage calculation"
+	}, {
+		"name" : "Mail",
+		"description" : "Mail sending"
+	}
+	],
+	"paths" : {
+		"/calculation/anonymousdata/findby/{guid}/{code}" : {
+			"get" : {
+				"tags" : ["Calculation"],
+				"operationId" : "getMortgageDetailsByGuidAndCode",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+					"name" : "guid",
+					"in" : "path",
+					"required" : true,
+					"type" : "string"
+				}, {
+					"name" : "code",
+					"in" : "path",
+					"required" : true,
+					"type" : "string"
+				}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "successful operation",
+						"schema" : {
+							"$ref" : "#/definitions/AnonymousDataResponse"
+						},
+						"headers" : {
+						}
+					}
+				}
+			}
+		},
+		"/calculation/anonymousdata/store" : {
+			"post" : {
+				"tags" : ["Calculation"],
+				"operationId" : "storeMortgageDetails",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+					"in" : "body",
+					"name" : "body",
+					"required" : false,
+					"schema" : {
+						"$ref" : "#/definitions/MaxMortgageCalculationInput"
+					}
+				}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "successful operation",
+						"schema" : {
+							"$ref" : "#/definitions/AnonymousDataStorageResponse"
+						},
+						"headers" : {
+						}
+					}
+				}
+			}
+		},
+		"/calculation/calculate/all" : {
+			"post" : {
+				"tags" : ["Calculation"],
+				"summary" : "Calculate possible mortgage",
+				"description" : "From simple income to the total picture.",
+				"operationId" : "getMortgageAllDetails",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+					"in" : "body",
+					"name" : "body",
+					"required" : false,
+					"schema" : {
+						"$ref" : "#/definitions/MaxMortgageCalculationInput"
+					}
+				}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "successful operation",
+						"schema" : {
+							"$ref" : "#/definitions/MortgageResponse"
+						}
+					}
+				}
+			}
+		},
+		"/calculation/calculate/monthly-costs" : {
+			"post" : {
+				"tags" : ["Calculation"],
+				"operationId" : "calculateMonthlyCosts",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+					"in" : "body",
+					"name" : "body",
+					"required" : false,
+					"schema" : {
+						"$ref" : "#/definitions/CalculateMonthlyCostsRequest"
+					}
+				}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "successful operation",
+						"schema" : {
+							"$ref" : "#/definitions/MonthlyCostsResponse"
+						},
+						"headers" : {
+						}
+					}
+				}
+			}
+		},
+		"/calculation/interest-discounts" : {
+			"get" : {
+				"tags" : ["Calculation"],
+				"operationId" : "getInterestDiscounts",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [],
+				"responses" : {
+					"200" : {
+						"description" : "successful operation",
+						"schema" : {
+							"$ref" : "#/definitions/InterestDiscountResponse"
+						},
+						"headers" : {
+						}
+					}
+				}
+			}
+		},
+		"/calculation/sendmail/calculation" : {
+			"post" : {
+				"tags" : ["Mail"],
+				"summary" : "Sending email containing mortgage details",
+				"description" : "",
+				"operationId" : "emailMortgageCalculation",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+					"in" : "body",
+					"name" : "body",
+					"required" : false,
+					"schema" : {
+						"$ref" : "#/definitions/EmailMortgageRequest"
+					}
+				}
+				],
+				"responses" : {
+					"default" : {
+						"description" : "successful operation"
+					}
+				}
+			}
+		}
+	},
+	"definitions" : {
+		"InterestDiscount" : {
+			"type" : "object",
+			"properties" : {
+				"type" : {
+					"type" : "string",
+					"enum" : ["NEW_CHECKING_ACCOUNT", "QUICK_CLOSING_MORTGAGE", "QUOTE_DISCOUNT"]
+				},
+				"value" : {
+					"type" : "number"
+				},
+				"useInMaxMortgageCalculation" : {
+					"type" : "boolean",
+					"default" : false
+				},
+				"alwaysUseInMaxMortgageCalculation" : {
+					"type" : "boolean",
+					"default" : false
+				},
+				"useInMonthlyCostsCalculation" : {
+					"type" : "boolean",
+					"default" : false
+				}
+			}
+		},
+		"MaxMortgageCalculationInput" : {
+			"type" : "object",
+			"required" : ["yearlyIncome"],
+			"properties" : {
+				"yearlyIncome" : {
+					"type" : "number",
+					"example" : 22500.0,
+					"minimum" : 0.0,
+					"maximum" : 500000.0
+				},
+				"yearlyIncomePartner" : {
+					"type" : "number",
+					"minimum" : 0.0,
+					"maximum" : 500000.0
+				},
+				"monthlyAlimony" : {
+					"type" : "number",
+					"minimum" : 0.0,
+					"maximum" : 10000.0
+				},
+				"liabilities" : {
+					"type" : "number",
+					"minimum" : 0.0,
+					"maximum" : 100000.0
+				},
+				"askingPrice" : {
+					"type" : "number",
+					"example" : 210000.0,
+					"minimum" : 0.0,
+					"maximum" : 9999999.0
+				},
+				"renovationCosts" : {
+					"type" : "number"
+				},
+				"ownMoney" : {
+					"type" : "number"
+				},
+				"sellingRequest" : {
+					"$ref" : "#/definitions/MortgageSellingRequest"
+				},
+				"interestDiscounts" : {
+					"type" : "array",
+					"items" : {
+						"type" : "string",
+						"enum" : ["NEW_CHECKING_ACCOUNT", "QUICK_CLOSING_MORTGAGE", "QUOTE_DISCOUNT"]
+					}
+				}
+			}
+		},
+		"LoanPart" : {
+			"type" : "object",
+			"required" : ["share", "type"],
+			"properties" : {
+				"type" : {
+					"type" : "string",
+					"enum" : ["NOT_APPLICABLE", "INTEREST_ONLY", "SAVING", "ANNUITY", "INVESTMENT"]
+				},
+				"share" : {
+					"type" : "number"
+				}
+			}
+		},
+		"MortgageSellingRequest" : {
+			"type" : "object",
+			"properties" : {
+				"sellingPriceCurrentProperty" : {
+					"type" : "number"
+				},
+				"currentMortgage" : {
+					"type" : "number"
+				}
+			}
+		},
+		"MonthlyPayments" : {
+			"type" : "object",
+			"properties" : {
+				"grossMortgageCosts" : {
+					"type" : "number"
+				},
+				"netMortgageCosts" : {
+					"type" : "number"
+				},
+				"cityTax" : {
+					"type" : "number"
+				},
+				"cableAndInternetCosts" : {
+					"type" : "number"
+				},
+				"publicUtilityCosts" : {
+					"type" : "number"
+				},
+				"serviceAndMaintenanceCosts" : {
+					"type" : "number"
+				},
+				"insuranceCosts" : {
+					"type" : "number"
+				},
+				"totalCosts" : {
+					"type" : "number"
+				},
+				"grandTotalNetCosts" : {
+					"type" : "number"
+				}
+			}
+		},
+		"MortgageSellingResponse" : {
+			"type" : "object",
+			"properties" : {
+				"sellingResult" : {
+					"type" : "number"
+				},
+				"sellingCosts" : {
+					"type" : "number"
+				},
+				"sellingCostsPercentage" : {
+					"type" : "number"
+				},
+				"sellingTotal" : {
+					"type" : "number"
+				}
+			}
+		},
+		"EmailMortgageRequest" : {
+			"type" : "object",
+			"required" : ["emailAddress", "mortgageRequest"],
+			"properties" : {
+				"mortgageRequest" : {
+					"$ref" : "#/definitions/MaxMortgageCalculationInput"
+				},
+				"emailAddress" : {
+					"type" : "string"
+				}
+			}
+		},
+		"AnonymousDataStorageResponse" : {
+			"type" : "object",
+			"properties" : {
+				"guid" : {
+					"type" : "string",
+					"format" : "uuid"
+				},
+				"code" : {
+					"type" : "string"
+				}
+			}
+		},
+		"AnonymousDataResponse" : {
+			"type" : "object",
+			"properties" : {
+				"mortgageRequest" : {
+					"$ref" : "#/definitions/MaxMortgageCalculationInput"
+				}
+			}
+		},
+		"BuyersCosts" : {
+			"type" : "object",
+			"properties" : {
+				"nhgCosts" : {
+					"type" : "number"
+				},
+				"capitalTransferTax" : {
+					"type" : "number"
+				},
+				"notaryFees" : {
+					"type" : "number"
+				},
+				"advisoryFees" : {
+					"type" : "number"
+				},
+				"brokerageFees" : {
+					"type" : "number"
+				},
+				"valuationFees" : {
+					"type" : "number"
+				},
+				"totalCosts" : {
+					"type" : "number"
+				}
+			}
+		},
+		"MortgageResponse" : {
+			"type" : "object",
+			"properties" : {
+				"maximumMortgage" : {
+					"type" : "number"
+				},
+				"maximumMortgageForIncome" : {
+					"type" : "number"
+				},
+				"maximumMortgageForProperty" : {
+					"type" : "number"
+				},
+				"requiredToBuyProperty" : {
+					"type" : "number"
+				},
+				"financingRequirement" : {
+					"type" : "number"
+				},
+				"requiredDeposit" : {
+					"type" : "number"
+				},
+				"totalDeposit" : {
+					"type" : "number"
+				},
+				"mortgage" : {
+					"type" : "number"
+				},
+				"interestRate" : {
+					"type" : "number"
+				},
+				"nhgPossible" : {
+					"type" : "boolean",
+					"default" : false
+				},
+				"redemptionFrequency" : {
+					"type" : "string",
+					"enum" : ["VARIABLE", "ONE_YEAR_FIXED", "THREE_YEARS_FIXED", "FIVE_YEARS_FIXED", "SIX_YEARS_FIXED", "TEN_YEARS_FIXED", "TWELVE_YEARS_FIXED", "FIFTEEN_YEARS_FIXED", "TWENTY_YEARS_FIXED", "THIRTY_YEARS_FIXED"]
+				},
+				"redemptionType" : {
+					"type" : "string",
+					"enum" : ["NOT_APPLICABLE", "INTEREST_ONLY", "SAVING", "ANNUITY", "INVESTMENT"]
+				},
+				"buyersCosts" : {
+					"$ref" : "#/definitions/BuyersCosts"
+				},
+				"monthlyPayments" : {
+					"$ref" : "#/definitions/MonthlyPayments"
+				},
+				"sellingResponse" : {
+					"$ref" : "#/definitions/MortgageSellingResponse"
+				},
+				"maximumLtvRatio" : {
+					"type" : "number"
+				}
+			}
+		},
+		"MonthlyCostsResponse" : {
+			"type" : "object",
+			"properties" : {
+				"interestRatePart1" : {
+					"type" : "number"
+				},
+				"interestRatePart2" : {
+					"type" : "number"
+				},
+				"grossMortgageCosts" : {
+					"type" : "number"
+				},
+				"nghInterestRate" : {
+					"type" : "boolean",
+					"default" : false
+				}
+			}
+		},
+		"InterestDiscountResponse" : {
+			"type" : "object",
+			"properties" : {
+				"interestDiscountList" : {
+					"type" : "array",
+					"items" : {
+						"$ref" : "#/definitions/InterestDiscount"
+					}
+				}
+			}
+		},
+		"CalculateMonthlyCostsRequest" : {
+			"type" : "object",
+			"required" : ["intendedMortgage", "loanPart1", "maxMortgage", "propertyValue", "redemptionFrequency", "yearlyIncome", "yearlyIncomePartner"],
+			"properties" : {
+				"yearlyIncome" : {
+					"type" : "number",
+					"minimum" : 0.0,
+					"maximum" : 500000.0
+				},
+				"yearlyIncomePartner" : {
+					"type" : "number",
+					"minimum" : 0.0,
+					"maximum" : 500000.0
+				},
+				"maxMortgage" : {
+					"type" : "number"
+				},
+				"intendedMortgage" : {
+					"type" : "number"
+				},
+				"loanPart1" : {
+					"$ref" : "#/definitions/LoanPart"
+				},
+				"loanPart2" : {
+					"$ref" : "#/definitions/LoanPart"
+				},
+				"redemptionFrequency" : {
+					"type" : "string",
+					"enum" : ["VARIABLE", "ONE_YEAR_FIXED", "THREE_YEARS_FIXED", "FIVE_YEARS_FIXED", "SIX_YEARS_FIXED", "TEN_YEARS_FIXED", "TWELVE_YEARS_FIXED", "FIFTEEN_YEARS_FIXED", "TWENTY_YEARS_FIXED", "THIRTY_YEARS_FIXED"]
+				},
+				"propertyValue" : {
+					"type" : "number"
+				},
+				"interestDiscounts" : {
+					"type" : "array",
+					"items" : {
+						"type" : "string",
+						"enum" : ["NEW_CHECKING_ACCOUNT", "QUICK_CLOSING_MORTGAGE", "QUOTE_DISCOUNT"]
+					}
+				}
+			}
+		}
+	}
+}
+ 
