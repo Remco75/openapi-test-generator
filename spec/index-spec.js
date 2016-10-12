@@ -16,6 +16,7 @@ describe('OpenApiTestGenerator', function() {
         it('should return an object with a generator property', function() {
             var myGenerator = OpenApiGenerator(spec, outputTestPath);
             expect(myGenerator.generate).toBeTruthy();
+            expect(myGenerator.generateNgApiMockdata).toBeTruthy();
         });
 
         it('should fail when we do not supply a open-api json', function() {
