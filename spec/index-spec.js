@@ -1,14 +1,20 @@
 describe('OpenApiTestGenerator', function() {
-    var OpenApiGenerator = require('../index');
-
-    var fileExists = require('file-exists'),
+    var OpenApiGenerator = require('../src/index'),
+       // responseMockgenerator = require('../src/generateResponseMocks'),
+        fs = require('fs'),
+        fileExists = require('file-exists'),
         path = require('path'),
-        rimraf = require('rimraf');
+        rimraf = require('rimraf'),
+        outputTestPath = path.join('.tmp/generated'),
+        spec = require('../spec/mocks/bareSwagger.json');
 
     describe('when the building the generator object though the constructor', function() {
+        beforeEach(function() {
+            rimraf.sync(path.join(outputTestPath,'/**'));
+        });
 
         it('should return an object with a generator property', function() {
-            var myGenerator = OpenApiGenerator(require('../spec/mocks/bareSwagger.json'));
+            var myGenerator = OpenApiGenerator(spec, outputTestPath);
             expect(myGenerator.generate).toBeTruthy();
         });
 
@@ -20,28 +26,36 @@ describe('OpenApiTestGenerator', function() {
             expect(function() { OpenApiGenerator(require('../spec/mocks/invalidSwagger.json'))}).toThrow();
         });
 
+        it('should build an valid directory structure', function() {
+            var myGenerator = OpenApiGenerator(spec, outputTestPath);
+            expect(fs.statSync(path.join(outputTestPath, 'get/path1/{orderId}')).isDirectory()).toBe(true);
+            expect(fs.statSync(path.join(outputTestPath, 'post/path2')).isDirectory()).toBe(true);
+        });
     });
 
     describe('when calling "generate"', function() {
-        var myGenerator, outputTestPath = '.tmp/test';
-
-        beforeAll(function() {
-            myGenerator = OpenApiGenerator(require('../spec/mocks/bareSwagger.json'));
-        });
+        var myGenerator;
 
         beforeEach(function() {
-            rimraf.sync(outputTestPath)
+            rimraf.sync(path.join(outputTestPath,'/**'));
+            myGenerator = OpenApiGenerator(spec, outputTestPath);
         });
 
-        it('should create testfiles for eacht path, in the output dir', function() {
-            myGenerator.generate(outputTestPath, true);
-            expect(fileExists(path.join(outputTestPath, 'path1-test.js'))).toBe(true);
-            expect(fileExists(path.join(outputTestPath, 'path2-test.js'))).toBe(true);
+        it('should create testfiles for each path, in the output dir', function() {
+            myGenerator.generate();
+            expect(fileExists(path.join(outputTestPath, 'path1-{orderId}-spec.js'))).toBe(true);
+            expect(fileExists(path.join(outputTestPath, 'path2-spec.js'))).toBe(true);
         });
 
-        it('should create requestMocks for eacht path / operation', function() {
-            myGenerator.generate(outputTestPath, true);
-            expect(fileExists(path.join(outputTestPath, 'get/path1/request-array.json'))).toBe(true);
+        it('should NOT create testfiles for each path, in the output dir', function() {
+            myGenerator.generate();
+            expect(fileExists(path.join(outputTestPath, 'get/path1/{orderId}/request-array.json'))).toBe(false);
+            expect(fileExists(path.join(outputTestPath, 'post/path2/request-array.json'))).toBe(false);
+        });
+
+        it('should create requestMocks for each path / operation', function() {
+            myGenerator.generate(true);
+            expect(fileExists(path.join(outputTestPath, 'get/path1/{orderId}/request-array.json'))).toBe(true);
             expect(fileExists(path.join(outputTestPath, 'post/path2/request-array.json'))).toBe(true);
         });
     });

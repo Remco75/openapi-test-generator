@@ -11,7 +11,7 @@
 		"description" : "calculation"
 	}],
 	"paths" : {
-		"/path1" : {
+		"/path1/{orderId}" : {
 			"get" : {
 				"operationId" : "path1",
 				"consumes" : ["application/json"],
@@ -19,7 +19,13 @@
 
 				"responses" : {
 					"200" : {
-						"description" : "successful operation"
+						"description" : "successful operation",
+						"schema": {
+							"$ref": "#/definitions/User"
+						}
+					},
+					"400": {
+						"description": "validation errors"
 					}
 				},
 				"parameters": [
@@ -53,7 +59,10 @@
 				],
 				"responses" : {
 					"200" : {
-						"description" : "successful operation"
+						"description" : "successful operation",
+						"schema": {
+							"$ref": "#/definitions/User"
+						}
 					}
 				}
 			}
@@ -68,13 +77,16 @@
 					"format": "int64"
 				},
 				"username": {
-					"type": "string"
+					"type": "string",
+					"example": "remco75"
 				},
 				"firstName": {
-					"type": "string"
+					"type": "string",
+					"example": "Remco"
 				},
 				"lastName": {
-					"type": "string"
+					"type": "string",
+					"example": "Vlierman"
 				},
 				"email": {
 					"type": "string"
@@ -88,7 +100,8 @@
 				"userStatus": {
 					"type": "integer",
 					"format": "int32",
-					"description": "User Status"
+					"description": "User Status",
+					"minimum": 0
 				}
 			},
 			"xml": {

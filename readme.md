@@ -17,15 +17,15 @@ If you would like to use the seperate functionality, (ie just generate mocks, or
 `npm install open-api-test-generator`
 
 ## Usage
-Simply import the module with
-`var OpenApiGenerator = require('open-api-test-generator');`
+```javascript
+//Simply import the module with
+var OpenApiGenerator = require('open-api-test-generator');
+//Import your openAPI spec:
+ var spec = require('path/to/swagger.json');
 
-Import your openAPI spec:
-` var spec = require('path/to/swagger.json');`
+//Construct the generator object:
+ var generator = OpenApiGenerator(spec);
 
-Construct the generator object:
-` var generator = OpenApiGenerator(spec)`;
-
-Then use it:
-`generator.generate('path/to/write/tests/and/mocks');`
-
+//Then use it:
+generator.generate('path/to/write/tests/and/mocks');
+```
