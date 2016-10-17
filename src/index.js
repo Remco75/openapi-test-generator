@@ -13,8 +13,10 @@
     /**
      * @description Generates tests and mocks for the given openApi spec.
      * @param writeMocks {boolean} Whether the module should write the generated requestMocks to file seperatly
+     * @param templatesPath {String} Folder with tests-tempates. Needed as long as swagger-test-templates does not support options
+     * @todo remove when stt support request options
      */
-    function generate(writeMocks) {
+    function generate(writeMocks, templatesPath) {
         var requestMocks = {};
 
         flatPaths.forEach(function(apiPath) {
@@ -22,16 +24,16 @@
             requestMocks[path.join(spec.basePath, apiPath.path)][apiPath.operation] = requestMockGenerator(apiPath.path, apiPath.operation, 200, 400, writeMocks);
             responseMockGenerator.generateResponseMock(apiPath.path, apiPath.operation, 200);
         });
-        generateTests(requestMocks);
+        generateTests(requestMocks, templatesPath);
     }
 
     /**
      * @description Generates tests for the given openApi spec.
      * @param mocks {object} Mock data ordered by endpoint / operation / responseCode
      */
-    function generateTests(mocks) {
+    function generateTests(mocks, templatesPath) {
         var testConfig  = {
-            assertionFormat: 'should', testModule: 'request', pathName: [], requestData: mocks, maxLen: -1
+            assertionFormat: 'should', testModule: 'request', pathName: [], requestData: mocks, maxLen: -1, templatesPath: templatesPath
         };
         stt.testGen(spec, testConfig).forEach(function(file) {
             //we want spec in the name, not test

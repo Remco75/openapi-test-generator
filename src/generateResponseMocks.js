@@ -22,7 +22,7 @@
             var ngApiMocks = [];
 
             await (flatPaths.forEach(function(apiPathOp) {
-                Swagmock(spec).responses({path: apiPathOp.path, operation: apiPathOp.operation}, function(err, mock) {
+                Swagmock(spec).responses({path: apiPathOp.path, operation: apiPathOp.operation, useExamples: true}, function(err, mock) {
                     var responses = {},
                         expessionPath = apiPathOp.path.replace(/\{(.*)\}/, '*');
 
