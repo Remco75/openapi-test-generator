@@ -31,6 +31,13 @@ describe('The ngApiMock generator', function() {
             });
         });
 
+        it('should add the basePath to the ngApiMock expression if present', function() {
+            myGenerator.generateNgApiMockData().then(function(data) {
+                expect(data[0].expression).toContain('somebase');
+                done();
+            });
+        });
+
         it('should should write 2 mockfiles', function(done) {
             myGenerator.generateNgApiMockData().then(function(data) {
                 expect(fileExists(path.join(outputTestPath,'path2_post.json'))).toBe(true);

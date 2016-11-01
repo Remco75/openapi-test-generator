@@ -17,11 +17,12 @@
      * @todo remove when stt support request options
      */
     function generate(writeMocks, templatesPath) {
-        var requestMocks = {};
+        var requestMocks = {},
+            basePath = spec.basePath || '';
 
         flatPaths.forEach(function(apiPath) {
-            requestMocks[path.join(spec.basePath, apiPath.path)] = {};
-            requestMocks[path.join(spec.basePath, apiPath.path)][apiPath.operation] = requestMockGenerator(apiPath.path, apiPath.operation, 200, 400, writeMocks);
+            requestMocks[path.join(basePath, apiPath.path)] = {};
+            requestMocks[path.join(basePath, apiPath.path)][apiPath.operation] = requestMockGenerator(apiPath.path, apiPath.operation, 200, 400, writeMocks);
             responseMockGenerator.generateResponseMock(apiPath.path, apiPath.operation, 200);
         });
         generateTests(requestMocks, templatesPath);
@@ -30,6 +31,7 @@
     /**
      * @description Generates tests for the given openApi spec.
      * @param mocks {object} Mock data ordered by endpoint / operation / responseCode
+     * @param templatesPath {String} Folder with tests-tempates. Needed as long as swagger-test-templates does not support options
      */
     function generateTests(mocks, templatesPath) {
         var testConfig  = {

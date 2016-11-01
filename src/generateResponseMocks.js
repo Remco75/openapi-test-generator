@@ -21,10 +21,11 @@
         var collectNgApiMockData = async (function () {
             var ngApiMocks = [];
 
+            var basePath = spec.basePath || '';
             await (flatPaths.forEach(function(apiPathOp) {
                 Swagmock(spec).responses({path: apiPathOp.path, operation: apiPathOp.operation, useExamples: true}, function(err, mock) {
                     var responses = {},
-                        expessionPath = apiPathOp.path.replace(/\{(.*)\}/, '*');
+                        expessionPath = path.join(basePath, apiPathOp.path.replace(/\{(.*)\}/, '*'));
 
                     for (var statusCode in mock.responses) {
                         responses['generated_'+statusCode] = {
