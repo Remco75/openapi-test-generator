@@ -36,17 +36,17 @@
             });
 
             if(Object.keys(getMocks).length > 0) {
-                var validMocks = {}, inValidMocks = {};
-
                 Object.keys(getMocks).forEach(function(paramName) {
 
                     getMocks[paramName].filter(function (fullMock) { return fullMock.valid; }).forEach(function (mock) {
+                        var validMocks = {};
                         validMocks[paramName] = mock.data;
                         validMocks.description = mock.message;
                         pathMock[successStatusCode].push(validMocks);
                     });
 
                     getMocks[paramName].filter(function (fullMock) { return !fullMock.valid; }).forEach(function (mock) {
+                        var inValidMocks = {};
                         inValidMocks[paramName] = mock.data;
                         inValidMocks.description = mock.message;
                         pathMock[validationErrorStatusCode].push(inValidMocks);
