@@ -37,7 +37,7 @@
                     var thisMock = {
                         expression: expessionPath,
                         method: apiPathOp.operation,
-                        name: apiPathOp.path.replace(/(?!^)\//g , '_') + '_' + apiPathOp.operation,
+                        name: apiPathOp.path.replace(/\//g , '_').replace(/_/, '') + '_' + apiPathOp.operation,
                         isArray: Array.isArray(mock.responses[statusCode]),
                         responses: responses
                     };
