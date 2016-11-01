@@ -1,6 +1,6 @@
 {
   "name": "open-api-test-generator",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Generate mockdata and tests based on an OpenApi specification (fka Swagger Specification)",
   "repository": {
     "type": "git",
