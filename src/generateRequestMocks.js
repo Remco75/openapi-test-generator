@@ -31,9 +31,12 @@
             pathMock[successStatusCode] = [];
             pathMock[validationErrorStatusCode] = [];
 
-            spec['paths'][apiPath][operation].parameters.forEach(function(param) {
-                getMocks[param.name] = (param.schema) ? mockRequestGenerator(param.schema) : mockRequestGenerator(param);
-            });
+            if(spec['paths'][apiPath][operation].parameters) {
+
+                spec['paths'][apiPath][operation].parameters.forEach(function(param) {
+                    getMocks[param.name] = (param.schema) ? mockRequestGenerator(param.schema) : mockRequestGenerator(param);
+                });
+            }
 
             if(Object.keys(getMocks).length > 0) {
                 Object.keys(getMocks).forEach(function(paramName) {
