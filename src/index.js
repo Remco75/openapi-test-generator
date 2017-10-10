@@ -70,7 +70,10 @@
      */
     module.exports = function(openApiSpec, outputPath) {
         if (!openApiSpec) throw new Error('please provide a openAPI json to start');
-        if (!zSchema.validate(openApiSpec, swaggerSchema)) throw new Error('openAPI spec not valid');
+        if (!zSchema.validate(openApiSpec, swaggerSchema)) {
+            var errors = zSchema.getLastErrors();
+            throw new Error('openAPI spec not valid\n' + JSON.stringify(errors, null, 2));
+        }
         if (!outputPath) { throw new Error('please supply an output path'); }
 
         outputBase = outputPath;
