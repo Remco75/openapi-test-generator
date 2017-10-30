@@ -1,4 +1,4 @@
-describe('The ngApiMock generator', function() {
+fdescribe('The ngApiMock generator', function() {
     var responseMockgenerator = require('../src/generateResponseMocks'),
         fs = require('fs'),
         deref = require('json-schema-deref-sync'),
@@ -31,7 +31,7 @@ describe('The ngApiMock generator', function() {
             });
         });
 
-        it('should add the basePath to the ngApiMock expression if present', function() {
+        fit('should add the basePath to the ngApiMock expression if present', function(done) {
             myGenerator.generateNgApiMockData().then(function(data) {
                 expect(data[0].expression).toContain('somebase');
                 done();
